@@ -16,5 +16,9 @@ type Circulo struct {
 }
 
 func (r Retangulo) Area() float64 {
+	return r.Largura * r.Altura
+}
+
+func (c Circulo) Area() float64 {
 	return math.Pi * c.Raio * c.Raio
 }
