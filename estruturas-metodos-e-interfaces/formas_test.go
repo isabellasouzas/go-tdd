@@ -9,6 +9,7 @@ func TestArea(t *testing.T) {
 	}{
 		{Retangulo{12, 6}, 72.0},
 		{Circulo{10}, 314.1592653589793},
+		{Triangulo{12, 6}, 36.0},
 	}
 	for _, tt := range testesArea {
 		resultado := tt.forma.Area()
