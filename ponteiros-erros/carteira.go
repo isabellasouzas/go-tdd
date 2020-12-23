@@ -15,13 +15,15 @@ type Carteira struct {
 	saldo Bitcoin
 }
 
+var ErroSaldoInsuficiente = errors.New("não é possível retirar: saldo insuficiente")
+
 func (c *Carteira) Depositar(quantidade Bitcoin) {
 	c.saldo += quantidade
 }
 
 func (c *Carteira) Retirar(quantidade Bitcoin) error {
 	if quantidade > c.saldo {
-		return errors.New("eita")
+		return ErroSaldoInsuficiente
 	}
 	c.saldo -= quantidade
 	return nil
