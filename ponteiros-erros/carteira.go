@@ -1,6 +1,9 @@
 package ponteiros_erros
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type Bitcoin int
 
@@ -13,14 +16,22 @@ type Carteira struct {
 }
 
 func (c *Carteira) Depositar(quantidade Bitcoin) {
-	fmt.Printf("O endereço do saldo no Depositar é %v \n", &c.saldo)
 	c.saldo += quantidade
 }
 
-func (c *Carteira) Saldo() int {
+func (c *Carteira) Retirar(quantidade Bitcoin) error {
+	if quantidade > c.saldo {
+		return errors.New("eita")
+	}
+	c.saldo -= quantidade
+	return nil
+}
+
+func (c *Carteira) Saldo() Bitcoin {
 	return c.saldo
 }
 
 func (b Bitcoin) String() string {
-	fmt.Sprintf("%d BTC", b)
+	return fmt.Sprintf("%d BTC", b)
+
 }
