@@ -16,6 +16,9 @@ type SleeperSpy struct {
 	Chamadas int
 }
 
+type SleeperPadrao struct {
+}
+
 const ultimaPalavra = "Go!"
 const inicioContagem = 3
 
@@ -23,15 +26,20 @@ func (s *SleeperSpy) Sleep() {
 	s.Chamadas++
 }
 
-func Contagem(saida io.Writer) {
+func (d *SleeperPadrao) Sleep() {
+	time.Sleep(1 * time.Second)
+}
+
+func Contagem(saida io.Writer, sleeper Sleeper) {
 	for i := inicioContagem; i > 0; i-- {
-		time.Sleep(1 * time.Second)
+		sleeper.Sleep()
 		fmt.Fprintln(saida, i)
 	}
-	time.Sleep(1 * time.Second)
-	fmt.Fprintln(saida, ultimaPalavra)
+	sleeper.Sleep()
+	fmt.Fprint(saida, ultimaPalavra)
 }
 
 func main() {
-	Contagem(os.Stdout)
+	sleeper := &SleeperPadrao{}
+	Contagem(os.Stdout, sleeper)
 }
