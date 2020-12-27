@@ -1,4 +1,4 @@
-package main
+package arrays
 
 func Soma(numeros []int) int {
 	soma := 0

@@ -1,4 +1,4 @@
-package injecao_de_dependencia
+package main
 
 import (
 	"bytes"
