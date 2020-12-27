@@ -8,7 +8,7 @@ import (
 )
 
 type Sleeper interface {
-	Sleep()
+	Pausa()
 }
 
 //mock
@@ -20,13 +20,27 @@ type SpyContagemOperacoes struct {
 	Chamadas []string
 }
 
-type SleeperPadrao struct {
+type TempoSpy struct {
+	duracaoPausa time.Duration
+}
+
+type SleeperConfiguravel struct {
+	duracao time.Duration
+	pausa   func(time.Duration)
 }
 
 const ultimaPalavra = "Go!"
 const inicioContagem = 3
 const escrita = "escrita"
 const pausa = "pausa"
+
+func (s *SleeperConfiguravel) Pausa() {
+	s.pausa(s.duracao)
+}
+
+func (t *TempoSpy) Pausa(duracao time.Duration) {
+	t.duracaoPausa = duracao
+}
 
 func (s *SpyContagemOperacoes) Pausa() {
 	s.Chamadas = append(s.Chamadas, pausa)
@@ -41,17 +55,9 @@ func (s *SleeperSpy) Sleep() {
 	s.Chamadas++
 }
 
-func (d *SleeperPadrao) Sleep() {
-	time.Sleep(1 * time.Second)
-}
-
 func Contagem(saida io.Writer, sleeper Sleeper) {
 	for i := inicioContagem; i > 0; i-- {
 		sleeper.Pausa()
-		fmt.Fprintln(saida, i)
-	}
-
-	for i := inicioContagem; i > 0; i-- {
 		fmt.Fprintln(saida, i)
 	}
 
@@ -60,6 +66,6 @@ func Contagem(saida io.Writer, sleeper Sleeper) {
 }
 
 func main() {
-	sleeper := &SleeperPadrao{}
+	sleeper := &SleeperConfiguravel{1 * time.Second, time.Sleep}
 	Contagem(os.Stdout, sleeper)
 }
