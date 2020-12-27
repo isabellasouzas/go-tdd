@@ -24,8 +24,9 @@ func TestAdiciona(t *testing.T) {
 	palavra := "teste"
 	definicao := "isso é apenas um teste"
 
-	dicionario.Adiciona(palavra, definicao)
+	err := dicionario.Adiciona(palavra, definicao)
 
+	comparaErro(t, err, nil)
 	comparaDefinicao(t, dicionario, palavra, definicao)
 }
 
@@ -39,6 +40,41 @@ func comparaDefinicao(t *testing.T, dicionario Dicionario, palavra, definicao st
 
 	if definicao != resultado {
 		t.Errorf("resultado '%s', esperado '%s'", resultado, definicao)
+	}
+}
+
+func TestAtualiza(t *testing.T) {
+	t.Run("palavra existente", func(t *testing.T) {
+		palavra := "teste"
+		definicao := "isso é apenas um teste"
+		dicionario := Dicionario{palavra: definicao}
+		novaDefinicao := "nova definicao"
+		err := dicionario.Atualiza(palavra, novaDefinicao)
+
+		comparaErro(t, err, nil)
+		comparaDefinicao(t, dicionario, palavra, novaDefinicao)
+	})
+
+	t.Run("palavra nova", func(t *testing.T) {
+		palavra := "teste"
+		definicao := "isso é apenas um teste"
+		dicionario := Dicionario{}
+
+		err := dicionario.Atualiza(palavra, definicao)
+
+		comparaErro(t, err, ErrPalavraInexistente)
+	})
+}
+
+func TestDeleta(t *testing.T) {
+	palavra := "teste"
+	dicionario := Dicionario{palavra: "definição de teste"}
+
+	dicionario.Deleta(palavra)
+
+	_, err := dicionario.Busca(palavra)
+	if err != ErrNaoEncontrado {
+		t.Errorf("espera-se que '%s' seja deletado", palavra)
 	}
 }
 
