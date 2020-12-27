@@ -11,8 +11,17 @@ type Sleeper interface {
 	Sleep()
 }
 
+//mock
+type SleeperSpy struct {
+	Chamadas int
+}
+
 const ultimaPalavra = "Go!"
 const inicioContagem = 3
+
+func (s *SleeperSpy) Sleep() {
+	s.Chamadas++
+}
 
 func Contagem(saida io.Writer) {
 	for i := inicioContagem; i > 0; i-- {
