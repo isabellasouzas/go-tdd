@@ -9,25 +9,28 @@ import (
 
 func TestCorredor(t *testing.T) {
 
-	servidorLento :=httptest.NewServer(http.HandlerFunc(w http.ResponseWriter, r *http.Request){
-		time.Sleep( 20 * time.Microsecond)
-		w.WriteHeader(http.StatusOK)
-	})
+	servidorLento := criarServidorComAtraso(20 * time.Microsecond)
+	servidorRapido := criarServidorComAtraso(0 * time.Microsecond)
 
-	servidorRapido := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
-		w.WriteHeader(http.StatusOK)
-	}))
+	defer servidorLento.Close()
+	defer servidorRapido.Close()
 
-	URLLenta := servidorLento
-	URLRapida := servidorRapido
+	URLLenta := servidorLento.URL
+	URLRapida := servidorRapido.URL
 
 	esperado := URLRapida
 	resultado := Corredor(URLLenta, URLRapida)
-
 
 	if resultado != esperado {
 		t.Errorf("resultado '%s', esperado '%s'", resultado, esperado)
 	}
 	servidorLento.Close()
 	servidorRapido.Close()
+}
+
+func criarServidorComAtraso(atraso time.Duration) *httptest.Server {
+	return httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		time.Sleep(atraso)
+		writer.WriteHeader(http.StatusOK)
+	}))
 }
