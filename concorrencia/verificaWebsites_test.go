@@ -3,10 +3,11 @@ package concorrencia
 import (
 	"reflect"
 	"testing"
+	"time"
 )
 
 func mockVerificadorWebsite(url string) bool {
-	if url == "waat:fufhurterwe.geds" {
+	if url == "waat://furhurterwe.geds" {
 		return false
 	}
 	return true
@@ -28,5 +29,21 @@ func TestVerificaWebsites(t *testing.T) {
 
 	if !reflect.DeepEqual(esperado, resultado) {
 		t.Errorf("esperado %v, resultado %v", esperado, resultado)
+	}
+}
+
+func slowStubVerificaWebsite(_ string) bool {
+	time.Sleep(20 * time.Microsecond)
+	return true
+}
+
+func BenchmarkVerificaWebsites(b *testing.B) {
+	urls := make([]string, 100)
+	for i := 0; i < len(urls); i++ {
+		urls[i] = "uma url"
+	}
+
+	for i := 0; i < b.N; i++ {
+		VerificaWebsites(slowStubVerificaWebsite, urls)
 	}
 }
