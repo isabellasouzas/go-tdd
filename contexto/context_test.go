@@ -1,9 +1,11 @@
 package contexto
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func (s *StubStore) Fetch() string {
@@ -16,15 +18,69 @@ type StubStore struct {
 
 func TestHandler(t *testing.T) {
 	data := "olá, mundo"
-	srv := Server(&StubStore{data})
+	t.Run("retorna dados da store", func(t *testing.T) {
+		store := &SpyStore{response: data, t: t}
+		srv := Server(store)
 
-	request := httptest.NewRequest(http.MethodGet, "/", nil)
-	response := httptest.NewRecorder()
+		request := httptest.NewRequest(http.MethodGet, "/", nil)
+		response := httptest.NewRecorder()
 
-	srv.ServeHTTP(response, request)
+		srv.ServeHTTP(response, request)
 
-	if response.Body.String() != data {
-		t.Errorf(`resultado "%s", esperado "%s"`, response.Body.String(), data)
+		if response.Body.String() != data {
+			t.Errorf(`recebi "%s", quero "%s"`, response.Body.String(), data)
+
+			store.assertWasNotCancelled()
+		}
+	})
+	t.Run("avisa a store para cancelar o trabalho se a requisiçãp for cancelada", func(t *testing.T) {
+		store := &SpyStore{response: data, t: t}
+		srv := Server(store)
+
+		request := httptest.NewRequest(http.MethodGet, "/", nil)
+
+		cancellingCtx, cancel := context.WithCancel(request.Context())
+		time.AfterFunc(5*time.Millisecond, cancel)
+
+		request = request.WithContext(cancellingCtx)
+
+		response := httptest.NewRecorder()
+
+		srv.ServeHTTP(response, request)
+
+		store.assertWasCancelled()
+	})
+	t.Run("retorna dados da store", func(t *testing.T) {
+		store := SpyStore{response: data}
+		srv := Server(&store)
+
+		request := httptest.NewRequest(http.MethodGet, "/", nil)
+		response := httptest.NewRecorder()
+
+		srv.ServeHTTP(response, request)
+
+		if response.Body.String() != data {
+			t.Errorf("resultado '%s', esperado '%s'", response.Body.String(), data)
+		}
+
+		if store.cancelled {
+			t.Error("não deveria ter cancelado a store")
+		}
+	})
+
+}
+
+func (s *SpyStore) assertWasCancelled() {
+	s.t.Helper()
+	if !s.cancelled {
+		s.t.Errorf("store não foi avisada para cancelar")
+	}
+}
+
+func (s *SpyStore) assertWasNotCancelled() {
+	s.t.Helper()
+	if s.cancelled {
+		s.t.Errorf("store foi avisada para cancelar")
 	}
 
 }
