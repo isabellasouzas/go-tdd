@@ -5,6 +5,9 @@ import (
 	"testing"
 )
 
+func NovoContador() *Contador {
+	return &Contador{}
+}
 func TestContador(t *testing.T) {
 	t.Run("incrementar o contador 3 vezes resulta no valor 3", func(t *testing.T) {
 		contador := Contador{}
