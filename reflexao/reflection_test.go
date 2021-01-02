@@ -25,7 +25,7 @@ func TestPercorre(t *testing.T) {
 			"struct com um campo string",
 			struct {
 				Nome string
-			}{"Cris"},
+			}{"Chris"},
 			[]string{"Chris"},
 		},
 		{
@@ -60,6 +60,30 @@ func TestPercorre(t *testing.T) {
 			},
 			[]string{"Chris", "Londres"},
 		},
+		{
+			"Slices",
+			[]Perfil{
+				{33, "Londres"},
+				{34, "Reykjavik"},
+			},
+			[]string{"Londres", "Reykjavik"},
+		},
+		{
+			"Arrays",
+			[2]Perfil{
+				{33, "Londres"},
+				{34, "Reykjavik"},
+			},
+			[]string{"Londres", "Reykjavik"},
+		},
+		{
+			"Maps",
+			map[string]string{
+				"Foo": "Bar",
+				"Baz": "Boz",
+			},
+			[]string{"Bar", "Boz"},
+		},
 	}
 
 	for _, teste := range casos {
@@ -72,5 +96,31 @@ func TestPercorre(t *testing.T) {
 				t.Errorf("resultado %v, esperado %v", resultado, teste.ChamadasEsperadas)
 			}
 		})
+		t.Run("com Maps", func(t *testing.T) {
+			mapA := map[string]string{
+				"Foo": "Bar",
+				"Baz": "Boz",
+			}
+
+			var resultado []string
+			percorre(mapA, func(entrada string) {
+				resultado = append(resultado, entrada)
+			})
+
+			verificaSeContem(t, resultado, "Bar")
+			verificaSeContem(t, resultado, "Boz")
+		})
+	}
+}
+
+func verificaSeContem(t *testing.T, palheiro []string, agulha string) {
+	contem := false
+	for _, x := range palheiro {
+		if x == agulha {
+			contem = true
+		}
+	}
+	if !contem {
+		t.Errorf("esperava-se que %+v contivesse '%s', mas não continha.", palheiro, agulha)
 	}
 }
