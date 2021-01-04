@@ -5,17 +5,14 @@ import (
 	"net/http"
 )
 
-type ArmazenamentoJogadorEmMemoria struct {
-}
-
 func (a *ArmazenamentoJogadorEmMemoria) ObterPontuacaoJogador(nome string) int {
 	return 123
 }
 
 func main() {
-	server := &ServidorJogador{&ArmazenamentoJogadorEmMemoria{}}
+	servidor := &ServidorJogador{NovoArmazenamentoJogadorEmMemoria()}
 
-	if err := http.ListenAndServe(":5000", server); err != nil {
+	if err := http.ListenAndServe(":5000", servidor); err != nil {
 		log.Fatalf("nao foi possivel escutar a porta 5000 '%v'", err)
 	}
 }

@@ -7,18 +7,29 @@ import (
 	"testing"
 )
 
+type EsbocoArmazenamentoJogador struct {
+	pontuacoes        map[string]int
+	registrosVitorias []string
+}
+
+func (e *EsbocoArmazenamentoJogador) ObterPontuacaoJogador(nome string) int {
+	pontuacao := e.pontuacoes[nome]
+	return pontuacao
+}
+
 func TestObterJogador(t *testing.T) {
 	armazenamento := EsbocoArmazenamentoJogador{
 		map[string]int{
 			"Maria": 20,
 			"Pedro": 10,
 		},
+		nil,
 	}
 
 	servidor := &ServidorJogador{&armazenamento}
 
 	t.Run("retornar resultado de Maria", func(t *testing.T) {
-		requisicao := novaRequisicaoObterPontuacao("Maria")
+		requisicao := novaRequisicaoObterPontuacaoGet("Maria")
 		resposta := httptest.NewRecorder()
 
 		servidor.ServeHTTP(resposta, requisicao)
@@ -27,7 +38,7 @@ func TestObterJogador(t *testing.T) {
 		verificarCorpoRequisicao(t, resposta.Body.String(), "20")
 	})
 	t.Run("retornar resultado Pedro", func(t *testing.T) {
-		requisicao := novaRequisicaoObterPontuacao("Pedro")
+		requisicao := novaRequisicaoObterPontuacaoGet("Pedro")
 		resposta := httptest.NewRecorder()
 
 		servidor.ServeHTTP(resposta, requisicao)
@@ -36,7 +47,7 @@ func TestObterJogador(t *testing.T) {
 		verificarCorpoRequisicao(t, resposta.Body.String(), "10")
 	})
 	t.Run("retorna 404 para jogador não encontrado", func(t *testing.T) {
-		requisicao := novaRequisicaoObterPontuacao("jorge")
+		requisicao := novaRequisicaoObterPontuacaoGet("jorge")
 		resposta := httptest.NewRecorder()
 
 		servidor.ServeHTTP(resposta, requisicao)
@@ -53,6 +64,7 @@ func TestObterJogador(t *testing.T) {
 func TestArmazenamentoVitorias(t *testing.T) {
 	armazenamento := EsbocoArmazenamentoJogador{
 		map[string]int{},
+		nil,
 	}
 	servidor := &ServidorJogador{&armazenamento}
 
@@ -67,24 +79,12 @@ func TestArmazenamentoVitorias(t *testing.T) {
 
 }
 
-func TestRegistrarVitoriasEBuscarEstasVitorias(t *testing.T) {
-	armazenamento := NovoArmazenamentoJogadorEmMemoria()
-	servidor := ServidorJogador{armazenamento}
-	jogador := "Maria"
-
-	servidor.ServeHTTP(httptest.NewRecorder(), novaRequisicaoResgistrarVitoriaPost(jogador))
-	servidor.ServeHTTP(httptest.NewRecorder(), novaRequisicaoResgistrarVitoriaPost(jogador))
-	servidor.ServeHTTP(httptest.NewRecorder(), novaRequisicaoResgistrarVitoriaPost(jogador))
-
-	resposta := httptest.NewRecorder()
-	servidor.ServeHTTP(resposta, novaRequisicaoObterPontuacao(jogador))
-	verificarRespostaCodigoStatus(t, resposta.Code, http.StatusOK)
-
-	verificarCorpoRequisicao(t, resposta.Body.String(), "3")
-
+func novaRequisicaoObterPontuacaoPost(nome string) *http.Request {
+	requisicao, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/jogadores/%s", nome), nil)
+	return requisicao
 }
 
-func novaRequisicaoObterPontuacao(nome string) *http.Request {
+func novaRequisicaoObterPontuacaoGet(nome string) *http.Request {
 	requisicao, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/jogadores/%s", nome), nil)
 	return requisicao
 }
@@ -94,15 +94,6 @@ func verificarCorpoRequisicao(t *testing.T, recebido, esperado string) {
 	if recebido != esperado {
 		t.Errorf("corpo da requisicao é invalido, obtive '%s' esperava %s", recebido, esperado)
 	}
-}
-
-type EsbocoArmazenamentoJogador struct {
-	pontuacoes map[string]int
-}
-
-func (e *EsbocoArmazenamentoJogador) ObterPontuacaoJogador(nome string) int {
-	pontuacao := e.pontuacoes[nome]
-	return pontuacao
 }
 
 func verificarRespostaCodigoStatus(t *testing.T, recebido, esperado int) {
