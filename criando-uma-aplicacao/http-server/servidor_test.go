@@ -21,7 +21,7 @@ func TestObterJogador(t *testing.T) {
 		requisicao := novaRequisicaoObterPontuacao("Maria")
 		resposta := httptest.NewRecorder()
 
-		servidor.ServerHTTP(resposta, requisicao)
+		servidor.ServeHTTP(resposta, requisicao)
 
 		verificarRespostaCodigoStatus(t, resposta.Code, http.StatusOK)
 		verificarCorpoRequisicao(t, resposta.Body.String(), "20")
@@ -30,7 +30,7 @@ func TestObterJogador(t *testing.T) {
 		requisicao := novaRequisicaoObterPontuacao("Pedro")
 		resposta := httptest.NewRecorder()
 
-		server.ServerHTTP(resposta, requisicao)
+		servidor.ServeHTTP(resposta, requisicao)
 
 		verificarRespostaCodigoStatus(t, resposta.Code, http.StatusOK)
 		verificarCorpoRequisicao(t, resposta.Body.String(), "10")
@@ -39,7 +39,7 @@ func TestObterJogador(t *testing.T) {
 		requisicao := novaRequisicaoObterPontuacao("jorge")
 		resposta := httptest.NewRecorder()
 
-		server.ServerHTTP(resposta, requisicao)
+		servidor.ServeHTTP(resposta, requisicao)
 
 		recebido := resposta.Code
 		esperado := http.StatusNotFound
@@ -50,8 +50,42 @@ func TestObterJogador(t *testing.T) {
 	})
 }
 
+func TestArmazenamentoVitorias(t *testing.T) {
+	armazenamento := EsbocoArmazenamentoJogador{
+		map[string]int{},
+	}
+	servidor := &ServidorJogador{&armazenamento}
+
+	t.Run("retorna status 'aceito' para chamadas ao metodo POST", func(t *testing.T) {
+		requisicao, _ := http.NewRequest(http.MethodPost, "/jogadores/Maria", nil)
+		resposta := httptest.NewRecorder()
+
+		servidor.ServeHTTP(resposta, requisicao)
+
+		verificarRespostaCodigoStatus(t, resposta.Code, http.StatusAccepted)
+	})
+
+}
+
+func TestRegistrarVitoriasEBuscarEstasVitorias(t *testing.T) {
+	armazenamento := NovoArmazenamentoJogadorEmMemoria()
+	servidor := ServidorJogador{armazenamento}
+	jogador := "Maria"
+
+	servidor.ServeHTTP(httptest.NewRecorder(), novaRequisicaoResgistrarVitoriaPost(jogador))
+	servidor.ServeHTTP(httptest.NewRecorder(), novaRequisicaoResgistrarVitoriaPost(jogador))
+	servidor.ServeHTTP(httptest.NewRecorder(), novaRequisicaoResgistrarVitoriaPost(jogador))
+
+	resposta := httptest.NewRecorder()
+	servidor.ServeHTTP(resposta, novaRequisicaoObterPontuacao(jogador))
+	verificarRespostaCodigoStatus(t, resposta.Code, http.StatusOK)
+
+	verificarCorpoRequisicao(t, resposta.Body.String(), "3")
+
+}
+
 func novaRequisicaoObterPontuacao(nome string) *http.Request {
-	requisicao, _ := http.NewRequest(http.MethodGet, fmt.Sprint("/jogadores/%s", nome), nil)
+	requisicao, _ := http.NewRequest(http.MethodGet, fmt.Sprintf("/jogadores/%s", nome), nil)
 	return requisicao
 }
 
