@@ -8,12 +8,18 @@ import (
 func ServidorJogador(w http.ResponseWriter, r *http.Request) {
 	jogador := r.URL.Path[len("/jogadores/"):]
 
-	if jogador == "Maria" {
-		fmt.Fprint(w, "20")
-		return
+	fmt.Fprint(w, ObterPontuacaoJogador(jogador))
+
+}
+
+func ObterPontuacaoJogador(nome string) string {
+	if nome == "Maria" {
+		return "20"
 	}
 
-	if jogador == "Pedro" {
-		fmt.Fprint(w, "10")
+	if nome == "Pedro" {
+		return "10"
 	}
+
+	return ""
 }
