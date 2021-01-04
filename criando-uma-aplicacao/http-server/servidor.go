@@ -5,21 +5,21 @@ import (
 	"net/http"
 )
 
-func ServidorJogador(w http.ResponseWriter, r *http.Request) {
-	jogador := r.URL.Path[len("/jogadores/"):]
-
-	fmt.Fprint(w, ObterPontuacaoJogador(jogador))
-
+type AmazenamentoJogador interface {
+	ObterPontuacaoJogador(nome string) int
 }
 
-func ObterPontuacaoJogador(nome string) string {
-	if nome == "Maria" {
-		return "20"
-	}
+type ServidorJogador struct {
+	armazenamento AmazenamentoJogador
+}
 
-	if nome == "Pedro" {
-		return "10"
-	}
+func (s *ServidorJogador) ServeHTTP(writer http.ResponseWriter, request *http.Request) {
+	jogador := request.URL.Path[len("/jogadores/"):]
 
-	return ""
+	pontuacao := s.armazenamento.ObterPontuacaoJogador(jogador)
+
+	if pontuacao == 0 {
+		writer.WriteHeader(http.StatusNotFound)
+	}
+	fmt.Fprint(writer, pontuacao)
 }
