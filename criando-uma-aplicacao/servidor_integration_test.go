@@ -6,6 +6,10 @@ import (
 	"testing"
 )
 
+type ArmazenamentoJogadorEmMemoria struct {
+	armazenamento map[string]int
+}
+
 func TestRegistrarVitoriasEBuscarEstasVitorias(t *testing.T) {
 	armazenamento := NovoArmazenamentoJogadorEmMemoria()
 	servidor := ServidorJogador{armazenamento}
@@ -22,13 +26,14 @@ func TestRegistrarVitoriasEBuscarEstasVitorias(t *testing.T) {
 	verificarCorpoRequisicao(t, resposta.Body.String(), "3")
 }
 
-func NovoArmazenamentoJogadorEmMemoria() *ArmazenamentoJogadorEmMemoria  {
+func NovoArmazenamentoJogadorEmMemoria() *ArmazenamentoJogadorEmMemoria {
 	return &ArmazenamentoJogadorEmMemoria{map[string]int{}}
 }
 
-func (a *ArmazenamentoJogadorEmMemoria) RegistrarVitoria(nome string)  {
+func (a *ArmazenamentoJogadorEmMemoria) RegistrarVitoria(nome string) {
 	a.armazenamento[nome]++
 }
 
-func (a *ArmazenamentoJogadorEmMemoria) ObterPontuacaoJogador(nome string) int  {
-	return  a.armazenamento[nome]
+func (a *ArmazenamentoJogadorEmMemoria) ObterPontuacaoJogador(nome string) int {
+	return a.armazenamento[nome]
+}
