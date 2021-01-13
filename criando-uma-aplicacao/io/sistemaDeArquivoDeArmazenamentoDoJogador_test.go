@@ -6,14 +6,6 @@ import (
 	"testing"
 )
 
-package main
-
-import (
-"io/ioutil"
-"os"
-"testing"
-)
-
 func criaArquivoTemporario(t *testing.T, dadoInicial string) (*os.File, func()) {
 	t.Helper()
 
