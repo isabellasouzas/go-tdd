@@ -23,3 +23,8 @@ func TestSistemaDeArquivoDermazenamento(t *testing.T) {
 		defineLiga(t, recebido, esperado)
 	})
 }
+
+func (f *SistemaDeArquivoDeArmazenamentoDoJogador) PegaLiga() []Jogador {
+	liga, _ := NovaLiga(f.bancoDeDados)
+	return liga
+}
