@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -11,7 +10,7 @@ import (
 type GuardaJogador interface {
 	PegaPontuacaoDoJogador(nome string) int
 	SalvaVitoria(nome string)
-	PegaLiga() []Jogador
+	PegaLiga() Liga
 }
 
 // Jogador guarda o nome com o número de vitorias
@@ -43,12 +42,13 @@ func NovoServidorDoJogador(armazenamento GuardaJogador) *ServidorDoJogador {
 	return p
 }
 
+// ManipulaLiga escreve uma liga
 func (p *ServidorDoJogador) ManipulaLiga(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(p.armazenamento.PegaLiga())
 	w.Header().Set("content-type", jsonContentType)
-	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(p.armazenamento.PegaLiga())
 }
 
+// ManipulaJogador processa uma vitoria ou mostra pontuacao
 func (p *ServidorDoJogador) ManipulaJogador(w http.ResponseWriter, r *http.Request) {
 	jogador := r.URL.Path[len("/jogadores/"):]
 
@@ -71,38 +71,6 @@ func (p *ServidorDoJogador) mostraPontuacao(w http.ResponseWriter, jogador strin
 }
 
 func (p *ServidorDoJogador) processaVitoria(w http.ResponseWriter, jogador string) {
-	p.armazenamento.salvaVitorias(jogador)
+	p.armazenamento.SalvaVitoria(jogador)
 	w.WriteHeader(http.StatusAccepted)
-}
-
-type SistemaDeArquivoDeArmazenamentoDoJogador struct {
-	bancoDeDados io.ReadWriteSeeker
-}
-
-func (f *SistemaDeArquivoDeArmazenamentoDoJogador) PegaLiga() []Jogador {
-	f.bancoDeDados.Seek(0,0)
-	liga, _ := NovaLiga(f.bancoDeDados)
-	return liga
-}
-
-func (f *SistemaDeArquivoDeArmazenamentoDoJogador) (nome string) int  {
-	jogador := f.PegaLiga().Find(nome)
-
-	if  jogador != nil {
-		return  jogador.Vitorias
-	}
-
-	return 0
-}
-
-func (f *SistemaDeArquivoDeArmazenamentoDoJogador) SalvaVitoria(nome string) {
-	liga := f.PegaLiga()
-	jogador :=liga.Find(nome)
-
-	if  jogador != nil {
-		jogador.Vitorias++
-	}
-
-	f.bancoDeDados.Seek(0, 0)
-	json.NewEncoder(f.bancoDeDados).Encode(liga)
 }
