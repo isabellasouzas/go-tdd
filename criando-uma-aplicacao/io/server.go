@@ -76,11 +76,33 @@ func (p *ServidorDoJogador) processaVitoria(w http.ResponseWriter, jogador strin
 }
 
 type SistemaDeArquivoDeArmazenamentoDoJogador struct {
-	bancoDeDados io.Reader
+	bancoDeDados io.ReadWriteSeeker
 }
 
 func (f *SistemaDeArquivoDeArmazenamentoDoJogador) PegaLiga() []Jogador {
-	var liga []Jogador
-	json.NewDecoder(f.bancoDeDados).Decode(&liga)
+	f.bancoDeDados.Seek(0,0)
+	liga, _ := NovaLiga(f.bancoDeDados)
 	return liga
+}
+
+func (f *SistemaDeArquivoDeArmazenamentoDoJogador) (nome string) int  {
+	jogador := f.PegaLiga().Find(nome)
+
+	if  jogador != nil {
+		return  jogador.Vitorias
+	}
+
+	return 0
+}
+
+func (f *SistemaDeArquivoDeArmazenamentoDoJogador) SalvaVitoria(nome string) {
+	liga := f.PegaLiga()
+	jogador :=liga.Find(nome)
+
+	if  jogador != nil {
+		jogador.Vitorias++
+	}
+
+	f.bancoDeDados.Seek(0, 0)
+	json.NewEncoder(f.bancoDeDados).Encode(liga)
 }
